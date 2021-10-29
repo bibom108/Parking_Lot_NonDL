@@ -1,9 +1,9 @@
 # Parking Lot Detection Without Deep Learning
 
-# Method 1
+## Method 1
 - Ý tưởng:
   - Vẫn đang hoàn thiện.
-# Method 2
+## Method 2
 - Ý tưởng:
   - Để user tự khoanh vùng.
   - Từ các vùng đã chọn, thực hiện các xử lý ảnh.
