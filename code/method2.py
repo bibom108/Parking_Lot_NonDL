@@ -10,17 +10,10 @@ cur_point = []
 parking_lot_num = 0
 
 
-def draw_for_user(image, color, index):
+def draw_for_user(image, color, index, thick):
     global ref_points
 
-    cv.line(image, (ref_points[index][0], ref_points[index][1]),
-            (ref_points[index][2], ref_points[index][3]), color, thickness=5)
-    cv.line(image, (ref_points[index][0], ref_points[index][1]),
-            (ref_points[index][6], ref_points[index][7]), color, thickness=5)
-    cv.line(image, (ref_points[index][4], ref_points[index][5]),
-            (ref_points[index][2], ref_points[index][3]), color, thickness=5)
-    cv.line(image, (ref_points[index][4], ref_points[index][5]),
-            (ref_points[index][6], ref_points[index][7]), color, thickness=5)
+    cv.rectangle(image, (ref_points[index][0], ref_points[index][1]), (ref_points[index][2], ref_points[index][3]), color, thick)
     return image
 
 
@@ -34,19 +27,19 @@ def catch_point(event, x, y, flags, param):
         cur_point.append(x)
         cur_point.append(y)
     elif event == cv.EVENT_LBUTTONUP:
-        if order_point == 3:
+        if order_point == 1:
             ref_points.append(cur_point)
             parking_lot_num = parking_lot_num + 1
             cur_point = []
-            draw_for_user(image, [255, 0, 0], parking_lot_num-1)
-        order_point = (order_point + 1) % 4
+            draw_for_user(image, [255, 0, 0], parking_lot_num-1, 5)
+        order_point = (order_point + 1) % 2
 
 
 def filter_region(image, vertices):
     pt_1 = [vertices[0], vertices[1]]
-    pt_2 = [vertices[2], vertices[3]]
-    pt_3 = [vertices[4], vertices[5]]
-    pt_4 = [vertices[6], vertices[7]]
+    pt_2 = [vertices[2], vertices[1]]
+    pt_3 = [vertices[2], vertices[3]]
+    pt_4 = [vertices[0], vertices[3]]
     vertices_new = np.array([[pt_1, pt_2, pt_3, pt_4]], dtype=np.int32)
     mask = np.zeros_like(image)
     if len(mask.shape) == 2:
@@ -65,14 +58,15 @@ def img_process(rec, img):
     img_no_bg = remove_background(img_selected)
     contours, hierarchy = cv.findContours(img_no_bg, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
     # cv.drawContours(img, contours, -1, (0, 255, 0), 3)
-    if len(contours) <= 4:
+    print(len(contours))
+    if len(contours) <= 20:
         return True
     else:
         return False
     # cv.waitKey()
 
 
-img = cv.imread('./parking_lot/3.jpg')
+img = cv.imread('./parking_lot/2.jpg')
 image = img.copy()
 clone = img.copy()
 cv.namedWindow("image", cv.WINDOW_NORMAL)
@@ -88,13 +82,16 @@ while True:
 
 index = 0
 cnt_empty = 0
+overlay = np.copy(img)
 for rec in ref_points:
     if (img_process(rec, img) == True):  # true is empty slot, draw green rec
-        img = draw_for_user(img, [0, 255, 0], index)
+        overlay = draw_for_user(overlay, [0, 100, 0], index, -1)
         cnt_empty = cnt_empty + 1
     else:
-        img = draw_for_user(img, [0, 0, 255], index)  # false if occupied
+        overlay = draw_for_user(overlay, [0, 0, 255], index, 5)  # false if occupied
     index = index + 1
+
+cv.addWeighted(overlay, 0.5, img, 1 - 0.5, 0, img)
 
 cv.putText(img, "Available: %d spots" % cnt_empty, (30, 95),
             cv.FONT_HERSHEY_SIMPLEX,

@@ -76,7 +76,7 @@ def draw_lines(image, lines, color=[0, 0, 255], thickness=5, make_copy=True):
     print("The total number of segments is:", len(cleaned))
     return image
 
-img = cv.imread("./parking_lot/4.png")
+img = cv.imread("./parking_lot/2.jpg")
 img_gray = cv.cvtColor(src=img, code=cv.COLOR_BGR2GRAY)
 img_gray_blur = cv.GaussianBlur(src=img_gray, ksize=(5, 5), sigmaX=0)
 img_edge = cv.Canny(image=img_gray_blur, threshold1=50, threshold2=150)
