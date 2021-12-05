@@ -5,12 +5,17 @@ import numpy as np
 import sys
 import argparse
 import operator
-
-
+import skimage.segmentation
+from skimage.segmentation import mark_boundaries
 ref_points = []
 cur_point = []
 kernel = np.ones((5, 5), np.uint8)
-
+import matplotlib.pyplot as plt
+from skimage import data, img_as_float
+from skimage.segmentation import (morphological_chan_vese,
+                                  morphological_geodesic_active_contour,
+                                  inverse_gaussian_gradient,
+                                  checkerboard_level_set)
 
 def ResizeWithAspectRatio(image, width=None, height=None, inter=cv.INTER_AREA):
     dim = None
@@ -83,8 +88,14 @@ def morphological(img, noise_filter):
         return cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
     else:
         return img
+# FELZENSZWALD'S METHOD
 
-
+def nothing(x):
+    pass
+def felzenszwalbs(img,numScale):
+    lab = cv.cvtColor(img, cv.COLOR_BGR2LAB)
+    res2 = skimage.segmentation.felzenszwalb(lab, scale=numScale)
+    return mark_boundaries(img,res2)
 def dilation(img, faded_line):
     if faded_line == "1":
         return cv.dilate(img, kernel, iterations=1)
@@ -164,3 +175,31 @@ def check_object_in_slot(line1, line2, img):
         return True
     else:
         return False
+
+# MORPHOLOGICAL SNAKES
+def load(f, as_gray=False):
+    """Load an image file located in the data directory.
+    Parameters
+    ----------
+    f : string
+        File name.
+    as_gray : bool, optional
+        Whether to convert the image to grayscale.
+    Returns
+    -------
+    img : ndarray
+        Image loaded from ``skimage.data_dir``.
+    """
+    # importing io is quite slow since it scans all the backends
+    # we lazy import it here
+    from skimage.io import imread
+    return imread(f, as_gray=as_gray)
+def store_evolution_in(lst):
+    """Returns a callback function to store the evolution of the level sets in
+    the given list.
+    """
+
+    def _store(x):
+        lst.append(np.copy(x))
+
+    return _store
