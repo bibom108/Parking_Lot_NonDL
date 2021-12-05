@@ -1,4 +1,3 @@
-
 from SolutionHeader import *
 
 img_path = "./parking_lot/new4.png"
