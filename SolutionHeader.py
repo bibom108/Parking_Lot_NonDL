@@ -1,21 +1,19 @@
-import matplotlib.pyplot as plt
 import cv2 as cv
-import numpy
 import numpy as np
-import sys
-import argparse
 import operator
 import skimage.segmentation
 from skimage.segmentation import mark_boundaries
+import operator
+
+import cv2 as cv
+import numpy as np
+import skimage.segmentation
+from skimage.segmentation import mark_boundaries
+
 ref_points = []
 cur_point = []
 kernel = np.ones((5, 5), np.uint8)
-import matplotlib.pyplot as plt
-from skimage import data, img_as_float
-from skimage.segmentation import (morphological_chan_vese,
-                                  morphological_geodesic_active_contour,
-                                  inverse_gaussian_gradient,
-                                  checkerboard_level_set)
+
 
 def ResizeWithAspectRatio(image, width=None, height=None, inter=cv.INTER_AREA):
     dim = None
@@ -88,14 +86,20 @@ def morphological(img, noise_filter):
         return cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
     else:
         return img
+
+
 # FELZENSZWALD'S METHOD
 
 def nothing(x):
     pass
-def felzenszwalbs(img,numScale):
+
+
+def felzenszwalbs(img, numScale):
     lab = cv.cvtColor(img, cv.COLOR_BGR2LAB)
     res2 = skimage.segmentation.felzenszwalb(lab, scale=numScale)
-    return mark_boundaries(img,res2)
+    return mark_boundaries(img, res2)
+
+
 def dilation(img, faded_line):
     if faded_line == "1":
         return cv.dilate(img, kernel, iterations=1)
@@ -118,6 +122,64 @@ def select_region(image, vertices):
 
 def hough_lines(image, theta):  # trả về tập hợp các cạnh phát hiện được
     return cv.HoughLinesP(image, 1, theta=theta, threshold=30, minLineLength=30, maxLineGap=20)
+
+
+def remove_noise(img):
+    gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+    ret, thresh = cv.threshold(gray,0,255,cv.THRESH_BINARY_INV+cv.THRESH_OTSU)
+    # noise removal
+    kernel = np.ones((3,3),np.uint8)
+    opening = cv.morphologyEx(thresh,cv.MORPH_OPEN,kernel, iterations = 2)
+    return opening
+
+def find_foreground_area(opening):
+    dist_transform = cv.distanceTransform(opening,cv.DIST_L2,3)
+    ret, sure_fg = cv.threshold(dist_transform,0.7*dist_transform.max(),255,0)
+    return sure_fg
+
+
+def marker(sure_fg, unknown, img):
+    ret, markers = cv.connectedComponents(sure_fg)
+    # Add one to all labels so that sure background is not 0, but 1
+    markers = markers+1
+    # Now, mark the region of unknown with zero
+    markers[unknown==255] = 0
+    markers = cv.watershed(img,markers)
+    return markers
+
+
+# MORPHOLOGICAL SNAKES
+def load(f, as_gray=False):
+    """Load an image file located in the data directory.
+    Parameters
+    ----------
+    f : string
+        File name.
+    as_gray : bool, optional
+        Whether to convert the image to grayscale.
+    Returns
+    -------
+    img : ndarray
+        Image loaded from ``skimage.data_dir``.
+    """
+    # importing io is quite slow since it scans all the backends
+    # we lazy import it here
+    from skimage.io import imread
+    return imread(f, as_gray=as_gray)
+
+
+def store_evolution_in(lst):
+    """Returns a callback function to store the evolution of the level sets in
+    the given list.
+    """
+
+    def _store(x):
+        lst.append(np.copy(x))
+
+    return _store
+
+
+#######################################EXTEND PART#####################################################
 
 
 def filter_lines(lines):  # Vạch kẻ đường là đường thẳng
@@ -175,31 +237,3 @@ def check_object_in_slot(line1, line2, img):
         return True
     else:
         return False
-
-# MORPHOLOGICAL SNAKES
-def load(f, as_gray=False):
-    """Load an image file located in the data directory.
-    Parameters
-    ----------
-    f : string
-        File name.
-    as_gray : bool, optional
-        Whether to convert the image to grayscale.
-    Returns
-    -------
-    img : ndarray
-        Image loaded from ``skimage.data_dir``.
-    """
-    # importing io is quite slow since it scans all the backends
-    # we lazy import it here
-    from skimage.io import imread
-    return imread(f, as_gray=as_gray)
-def store_evolution_in(lst):
-    """Returns a callback function to store the evolution of the level sets in
-    the given list.
-    """
-
-    def _store(x):
-        lst.append(np.copy(x))
-
-    return _store

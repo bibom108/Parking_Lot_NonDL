@@ -1,12 +1,16 @@
+from matplotlib import pyplot as plt
+from skimage import img_as_float
+from skimage.segmentation import morphological_chan_vese, checkerboard_level_set
+
 from SolutionHeader import *
 
-img_path = "./parking_lot/new4.png"
+img_path = "./parking_lot/17.jpg"
 line_type = "1" #input("The line is straight or non-straight? [0: straight, 1: non-straight] ")
 slot_type = "0" #input("Each slot is separated or continuous ? [0: separated, 1: continuous] ")
 color_type = "0" #input("What kind of color is the line ? [0: white, 1: yellow] ")
 noise_filter = "1" #input("Do you want to reduce noise on this image (Many object same color with the line) ? [0: NO, 1: YES] ")
 faded_line = "1" #input("Is the line blur or clear ? [0: Clear, 1: Blur] ")
-solution_number = "3" #input("Which solution do you refer (Try them out to pick the best) ? [1: Morphological, 2:] ")
+solution_number = "2" #input("Which solution do you refer (Try them out to pick the best) ? [1: Morphological, 2:] ")
 
 img = cv.imread(img_path)
 clone = img.copy()
@@ -50,7 +54,22 @@ if solution_number == "1":
     show_img(img_final)
     cv.waitKey(0)
     cv.destroyAllWindows()
-elif solution_number== "2":
+elif solution_number == "2":
+    opening = remove_noise(img)
+    # sure background area
+    sure_bg = cv.dilate(opening, kernel, iterations=3)
+    # Finding sure foreground area
+    sure_fg = find_foreground_area(opening)
+    # Finding unknown region
+    sure_fg = np.uint8(sure_fg)
+    unknown = cv.subtract(sure_bg, sure_fg)
+    # Marker labelling
+    markers = marker(sure_fg, unknown, img)
+    img[markers == -1] = [255, 0, 0]
+    show_img(img)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+elif solution_number == "3":
     cv.namedWindow('image')
     cv.createTrackbar('K', 'image', 0, 4000, nothing)
     cv.setTrackbarPos('K', 'image', 1000)
@@ -60,19 +79,18 @@ elif solution_number== "2":
         if k == 27:
             break
         cv.imshow('image', felzenszwalbs(img,numMin))
-elif solution_number == "3":
+elif solution_number == "4":
     # Morphological ACWE
-    image = img_as_float(load("parking_lot/1.png", as_gray=True))
+    image = img_as_float(load("./parking_lot/17.jpg", as_gray=True))
     # Initial level set
     init_ls = checkerboard_level_set(image.shape, 6)
     # List with intermediate results for plotting the evolution
     evolution = []
     callback = store_evolution_in(evolution)
-    ls = morphological_chan_vese(image, iterations=35, init_level_set=init_ls,
+    ls = morphological_chan_vese(image, num_iter=35, init_level_set=init_ls,
                                  smoothing=3, iter_callback=callback)
     fig, axes = plt.subplots(2, 1, figsize=(8, 8))
     ax = axes.flatten()
-
     ax[0].imshow(image, cmap="gray")
     ax[0].set_axis_off()
     ax[0].contour(ls, [0.5], colors='g')
