@@ -1,7 +1,3 @@
-from matplotlib import pyplot as plt
-from skimage import img_as_float
-from skimage.segmentation import morphological_chan_vese, checkerboard_level_set
-
 from SolutionHeader import *
 
 img_path = "./parking_lot/17.jpg"
