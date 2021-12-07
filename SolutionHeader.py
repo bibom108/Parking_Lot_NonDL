@@ -17,6 +17,7 @@ from skimage.segmentation import morphological_chan_vese, checkerboard_level_set
 ref_points = []
 cur_point = []
 kernel = np.ones((5, 5), np.uint8)
+num_pt = 0
 
 
 def ResizeWithAspectRatio(image, width=None, height=None, inter=cv.INTER_AREA):
@@ -38,7 +39,7 @@ def ResizeWithAspectRatio(image, width=None, height=None, inter=cv.INTER_AREA):
 def catch_point(event, x, y, flags, param):
     global ref_points
     global cur_point
-
+    global num_pt
     if event == cv.EVENT_LBUTTONDOWN:
         cur_point.append(x)
         cur_point.append(y)
@@ -46,14 +47,19 @@ def catch_point(event, x, y, flags, param):
         ref_points.append(cur_point)
         cv.circle(param, (cur_point[0], cur_point[1]), 10, (0, 0, 255), 4)
         cur_point = []
+        num_pt += 1
 
+
+def getNumPoint():
+    global num_pt
+    return num_pt
 
 def show_img(img):
     x = cv.resize(img, (960, 540))
     cv.imshow('', x)
 
 
-def draw_lines(image, lines, color=[255, 0, 0], thickness=2, make_copy=True):  # vẽ đường thẳng từ 2 điểm đã cho
+def draw_lines(image, lines, color=[0, 255, 0], thickness=3, make_copy=True):  # vẽ đường thẳng từ 2 điểm đã cho
     if make_copy:
         image = np.copy(image)
     for line in lines:
@@ -69,7 +75,7 @@ def draw_for_user(line1, line2, image, color, index,
     return image
 
 
-def remove_background(img):  # làm mờ sau đó sử dụng ngưỡng động otsu
+def remove_background(img):
     # img = cv.GaussianBlur(src=img, ksize=(5, 5), sigmaX=0)
     image = cv.cvtColor(img, cv.COLOR_BGR2HLS)
     # white color mask
@@ -129,12 +135,13 @@ def hough_lines(image, theta):  # trả về tập hợp các cạnh phát hiệ
 
 
 def remove_noise(img):
-    gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-    ret, thresh = cv.threshold(gray,0,255,cv.THRESH_BINARY_INV+cv.THRESH_OTSU)
+    thresh = remove_background(img)
     # noise removal
-    kernel = np.ones((3,3),np.uint8)
-    opening = cv.morphologyEx(thresh,cv.MORPH_OPEN,kernel, iterations = 2)
+    kernel = np.ones((5,5),np.uint8)
+    opening = cv.morphologyEx(thresh, cv.MORPH_OPEN, kernel)
+    opening = cv.bitwise_not(opening)
     return opening
+
 
 def find_foreground_area(opening):
     dist_transform = cv.distanceTransform(opening,cv.DIST_L2,3)
