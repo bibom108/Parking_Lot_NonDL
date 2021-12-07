@@ -54,9 +54,9 @@ def getNumPoint():
     global num_pt
     return num_pt
 
-def show_img(img):
+def show_img(img, title):
     x = cv.resize(img, (960, 540))
-    cv.imshow('', x)
+    cv.imshow(title, x)
 
 
 def draw_lines(image, lines, color=[0, 255, 0], thickness=3, make_copy=True):  # vẽ đường thẳng từ 2 điểm đã cho
