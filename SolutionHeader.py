@@ -156,6 +156,7 @@ def marker(sure_fg, unknown, img):
     # Now, mark the region of unknown with zero
     markers[unknown==255] = 0
     markers = cv.watershed(img,markers)
+    markers[unknown==0] = -1
     return markers
 
 

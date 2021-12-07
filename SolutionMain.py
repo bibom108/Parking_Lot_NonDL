@@ -6,7 +6,7 @@ slot_type = "0" #input("Each slot is separated or continuous ? [0: separated, 1:
 color_type = "0" #input("What kind of color is the line ? [0: white, 1: yellow] ")
 noise_filter = "1" #input("Do you want to reduce noise on this image (Many object same color with the line) ? [0: NO, 1: YES] ")
 faded_line = "1" #input("Is the line blur or clear ? [0: Clear, 1: Blur] ")
-solution_number = "2" #input("Which solution do you refer (Try them out to pick the best) ? [1: Morphological, 2:] ")
+solution_number = "3" #input("Which solution do you refer (Try them out to pick the best) ? [1: Morphological, 2:] ")
 
 img = cv.imread(img_path)
 clone = img.copy()
@@ -56,15 +56,10 @@ elif solution_number == "2":
     cv.waitKey(0)
     cv.destroyAllWindows()
 elif solution_number == "3":
-    cv.namedWindow('image')
-    cv.createTrackbar('K', 'image', 0, 4000, nothing)
-    cv.setTrackbarPos('K', 'image', 1000)
-    while (1):
-        numMin = cv.getTrackbarPos('K', 'image')
-        k = cv.waitKey(1) & 0xFF
-        if k == 27:
-            break
-        cv.imshow('image', felzenszwalbs(img,numMin))
+    img_final = felzenszwalbs(img, 3919)
+    show_img(img_final)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
 elif solution_number == "4":
     # Morphological ACWE
     image = img_as_float(load("./dataset/highView/XuongCa/data_10.jpg", as_gray=True))
