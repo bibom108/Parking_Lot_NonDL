@@ -71,7 +71,6 @@ elif solution_number == "4":
     ls = morphological_chan_vese(image, num_iter=1, init_level_set=init_ls, smoothing=3, iter_callback=callback)
     fig, axes = plt.subplots(2, 1, figsize=(8, 8))
     ax = axes.flatten()
-    print(type(ax))
     ax[0].imshow(image, cmap="gray")
     ax[0].set_axis_off()
     ax[0].contour(ls, [0.5], colors='g')
