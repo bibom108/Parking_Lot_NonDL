@@ -1,12 +1,12 @@
 from SolutionHeader import *
 
-img_path = "./dataset/highView/XuongCa/main1.png"
-line_type = "1" #input("The line is straight or non-straight? [0: straight, 1: non-straight] ")
-slot_type = "0" #input("Each slot is separated or continuous ? [0: separated, 1: continuous] ")
-color_type = "0" #input("What kind of color is the line ? [0: white, 1: yellow] ")
-noise_filter = "1" #input("Do you want to reduce noise on this image (Many object same color with the line) ? [0: NO, 1: YES] ")
-faded_line = "1" #input("Is the line blur or clear ? [0: Clear, 1: Blur] ")
-solution_number = "4" #input("Which solution do you refer (Try them out to pick the best) ? [1: Morphological, 2:] ")
+img_path = "./dataset/highView/Block/main.jpg"
+line_type = input("The line is straight or non-straight? [0: straight, 1: non-straight] ")
+noise_filter = input("Does many object have same color with the line (or noise) ? [0: NO, 1: YES] ")
+faded_line = input("Is the line blur or clear ? [0: Clear, 1: Blur] ")
+line_size = input("How big is the line from 0 (super small) to 9 (super large)? ")
+line_number = input("Does the image have many slots? [0: Many, 1: A few] ")
+solution_number = input("Which solution do you refer (Try them out to pick the best) ? [1: Morphological, 2:] ")
 
 img = cv.imread(img_path)
 clone = img.copy()
@@ -40,6 +40,7 @@ if solution_number == "1":
     show_img(img_final, "Morphological Result")
     cv.waitKey(0)
     cv.destroyAllWindows()
+
 elif solution_number == "2":
     opening = remove_noise(img)
     # sure background area
@@ -55,12 +56,26 @@ elif solution_number == "2":
     show_img(img, "Watershed algorithm's Result")
     cv.waitKey(0)
     cv.destroyAllWindows()
+
 elif solution_number == "3":
-    img_final = felzenszwalbs(img, 3919)
+    para = 500*int(line_size) + 500
+    img_final = felzenszwalbs(img, para)
     show_img(img_final, "Felzenszwalbs method's Result")
     cv.waitKey(0)
     cv.destroyAllWindows()
+
 elif solution_number == "4":
+    if (line_number == "0"):
+        if noise_filter == "0":
+            iteration = 4
+        else:
+            iteration = 8
+    else:
+        if noise_filter == "0":
+            iteration = 23
+        else:
+            iteration = 68
+
     # Morphological ACWE
     image = img_as_float(load(img_path, as_gray=True))
     # Initial level set
@@ -68,7 +83,7 @@ elif solution_number == "4":
     # List with intermediate results for plotting the evolution
     evolution = []
     callback = store_evolution_in(evolution)
-    ls = morphological_chan_vese(image, num_iter=1, init_level_set=init_ls, smoothing=3, iter_callback=callback)
+    ls = morphological_chan_vese(image, iteration = 1, init_level_set=init_ls, smoothing=3, iter_callback=callback)
     fig, axes = plt.subplots(2, 1, figsize=(8, 8))
     ax = axes.flatten()
     ax[0].imshow(image, cmap="gray")
