@@ -75,15 +75,15 @@ elif solution_number == "4":
             iteration = 23
         else:
             iteration = 68
-
     # Morphological ACWE
-    image = img_as_float(load(img_path, as_gray=True))
+    img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    image = img_as_float(img_gray)
     # Initial level set
     init_ls = checkerboard_level_set(image.shape, 6)
     # List with intermediate results for plotting the evolution
     evolution = []
     callback = store_evolution_in(evolution)
-    ls = morphological_chan_vese(image, iteration = 1, init_level_set=init_ls, smoothing=3, iter_callback=callback)
+    ls = morphological_chan_vese(image, num_iter = iteration, init_level_set=init_ls, smoothing=3, iter_callback=callback)
     fig, axes = plt.subplots(2, 1, figsize=(8, 8))
     ax = axes.flatten()
     ax[0].imshow(image, cmap="gray")
