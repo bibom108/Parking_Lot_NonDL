@@ -1,12 +1,12 @@
 from SolutionHeader import *
 
-img_path = "./dataset/highView/Block/main.jpg"
-line_type = input("The line is straight or non-straight? [0: straight, 1: non-straight] ")
+#"./dataset/highView/Block/main.jpg"
+img_path = input("Enter file dir: ")
 noise_filter = input("Does many object have same color with the line (or noise) ? [0: NO, 1: YES] ")
 faded_line = input("Is the line blur or clear ? [0: Clear, 1: Blur] ")
 line_size = input("How big is the line from 0 (super small) to 9 (super large)? ")
 line_number = input("Does the image have many slots? [0: Many, 1: A few] ")
-solution_number = input("Which solution do you refer (Try them out to pick the best) ? [1: Morphological, 2:] ")
+solution_number = input("Which solution do you refer (Try them out to pick the best) ? [1: Morphological, 2: Watershed, 3: Felzenszwalbs, 4: Morphological Snakes] ")
 
 img = cv.imread(img_path)
 clone = img.copy()
@@ -32,10 +32,7 @@ if solution_number == "1":
     opening = morphological(dila, noise_filter)
     # Detect edge
     # img_edge_detection = detect_edges(opening)
-    if line_type == "0":
-        lines = hough_lines(opening, np.pi / 2)
-    else:
-        lines = hough_lines(opening, np.pi / 180)
+    lines = hough_lines(opening, np.pi / 180)
     img_final = draw_lines(img, lines)
     show_img(img_final, "Morphological Result")
     cv.waitKey(0)
@@ -51,8 +48,16 @@ elif solution_number == "2":
     sure_fg = np.uint8(sure_fg)
     unknown = cv.subtract(sure_bg, sure_fg)
     # Marker labelling
-    markers = marker(sure_fg, unknown, img)
-    img[markers == -1] = [0, 255, 0]
+    clone = img.copy()
+    markers = marker(sure_fg, unknown, clone, 0)
+    clone[markers == -1] = [0, 255, 0]
+    avg_color_per_row = np.average(clone, axis=0)
+    avg_color = np.average(avg_color_per_row, axis=0)
+    if(avg_color[1]==255.0):
+        markers = marker(sure_fg, unknown, img, 1)
+        img[markers == -1] = [0, 255, 0]
+    else:
+        img = clone
     show_img(img, "Watershed algorithm's Result")
     cv.waitKey(0)
     cv.destroyAllWindows()

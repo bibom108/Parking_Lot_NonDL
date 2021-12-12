@@ -134,11 +134,10 @@ def hough_lines(image, theta):  # trả về tập hợp các cạnh phát hiệ
     return cv.HoughLinesP(image, 1, theta=theta, threshold=30, minLineLength=30, maxLineGap=20)
 
 
-def remove_noise(img):
+def remove_noise(img, noise_filter):
     thresh = remove_background(img)
     # noise removal
-    kernel = np.ones((5,5),np.uint8)
-    opening = cv.morphologyEx(thresh, cv.MORPH_OPEN, kernel)
+    opening = morphological(thresh, noise_filter)
     opening = cv.bitwise_not(opening)
     return opening
 
@@ -149,14 +148,15 @@ def find_foreground_area(opening):
     return sure_fg
 
 
-def marker(sure_fg, unknown, img):
+def marker(sure_fg, unknown, img, remarker):
     ret, markers = cv.connectedComponents(sure_fg)
     # Add one to all labels so that sure background is not 0, but 1
     markers = markers+1
     # Now, mark the region of unknown with zero
     markers[unknown==255] = 0
     markers = cv.watershed(img,markers)
-    markers[unknown==0] = -1
+    if(remarker==0):
+        markers[unknown==0] = -1
     return markers
 
 
