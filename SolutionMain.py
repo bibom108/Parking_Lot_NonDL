@@ -2,6 +2,7 @@ from SolutionHeader import *
 
 #"./dataset/highView/Block/main.jpg"
 img_path = input("Enter file dir: ")
+blur_img = input("Is the picture blurry or sharp?[0: Blur, 1:Sharp]")
 noise_filter = input("Does many object have same color with the line (or noise) ? [0: NO, 1: YES] ")
 faded_line = input("Is the line blur or clear ? [0: Clear, 1: Blur] ")
 line_size = input("How big is the line from 0 (super small) to 9 (super large)? ")
@@ -70,16 +71,26 @@ elif solution_number == "3":
     cv.destroyAllWindows()
 
 elif solution_number == "4":
-    if (line_number == "0"):
-        if noise_filter == "0":
-            iteration = 4
+    # Get the image before inscreasing bright and contrast
+    originImg = img.copy()
+    if blur_img == "0":
+        # Inscrease bright and contrast of img to reduce blurry
+        img = funcBrightContrast(img, 200, 300)
+        if noise_filter=="0":
+            iteration = 1
         else:
-            iteration = 8
+            iteration = 3
     else:
-        if noise_filter == "0":
-            iteration = 23
+        if (line_number == "0"):
+            if noise_filter == "0":
+                iteration = 4
+            else:
+                iteration = 8
         else:
-            iteration = 68
+            if noise_filter == "0":
+                iteration = 23
+            else:
+                iteration = 68
     # Morphological ACWE
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     image = img_as_float(img_gray)
@@ -88,10 +99,10 @@ elif solution_number == "4":
     # List with intermediate results for plotting the evolution
     evolution = []
     callback = store_evolution_in(evolution)
-    ls = morphological_chan_vese(image, num_iter = iteration, init_level_set=init_ls, smoothing=3, iter_callback=callback)
+    ls = morphological_chan_vese(image, iterations = iteration, init_level_set=init_ls, smoothing=3, iter_callback=callback)
     fig, axes = plt.subplots(2, 1, figsize=(8, 8))
     ax = axes.flatten()
-    ax[0].imshow(image, cmap="gray")
+    ax[0].imshow(originImg, cmap="gray")
     ax[0].set_axis_off()
     ax[0].contour(ls, [0.5], colors='g')
     ax[0].set_title("Morphological Snakes's Result", fontsize=12)
