@@ -1,8 +1,8 @@
 from SolutionHeader import *
 
 #"./dataset/highView/Block/main.jpg"
-img_path = "./dataset/sol3/2.png"
-solution_number = "3"
+img_path = input("Choose your path: ")
+solution_number = input("Choose your solution: ")
 configSol4 = configparser.ConfigParser()        # String type
 configSol4.read('configSol4.ini')
 configSol3 = configparser.ConfigParser()        # String type
@@ -14,22 +14,21 @@ iteration = configSol4[img_name]['iter']
 bright = configSol4[img_name]['bright']
 contrast = configSol4[img_name]['contrast']
 k = configSol3[img_name]['k']
-print(k)
 
 img = cv.imread(img_path)
 clone = img.copy()
-# if input("Do you want to select ROI? [0: NO, 1: YES] ") == "1":
-#     param = img
-#     cv.namedWindow("image", cv.WINDOW_NORMAL)
-#     cv.setMouseCallback("image", catch_point, param)
-#     while True:
-#         cv.imshow("image", img)
-#         key = cv.waitKey(1) & 0xFF
-#         if key == ord("s") or getNumPoint() == 2:
-#             cv.destroyAllWindows()
-#             break
-#     img = clone
-#     img = img[ref_points[0][1]:ref_points[1][1], ref_points[0][0]:ref_points[1][0]]
+if input("Do you want to select ROI? [0: NO, 1: YES] ") == "1":
+    param = img
+    cv.namedWindow("image", cv.WINDOW_NORMAL)
+    cv.setMouseCallback("image", catch_point, param)
+    while True:
+        cv.imshow("image", img)
+        key = cv.waitKey(1) & 0xFF
+        if key == ord("s") or getNumPoint() == 2:
+            cv.destroyAllWindows()
+            break
+    img = clone
+    img = img[ref_points[0][1]:ref_points[1][1], ref_points[0][0]:ref_points[1][0]]
 
 # img is ready to go
 if solution_number == "1":
