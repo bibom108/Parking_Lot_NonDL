@@ -1,19 +1,23 @@
 from SolutionHeader import *
 
-#"./dataset/highView/Block/main.jpg"
-img_path = input("Choose your path: ")
+#"1.jpg"
+img_path = input("Choose dataset name: ")
 solution_number = input("Choose your solution: ")
 configSol4 = configparser.ConfigParser()        # String type
 configSol4.read('configSol4.ini')
 configSol3 = configparser.ConfigParser()        # String type
 configSol3.read('configSol3.ini')
-img_name = img_path[-6:-4]
-if img_name[0] == '/':
-    img_name = img_name[-1:]
+configSol1 = configparser.ConfigParser()        # String type
+configSol1.read('configSol1.ini')
+img_name = img_path[:2]
+if img_name[1] == '.':
+    img_name = img_name[0]
 iteration = configSol4[img_name]['iter']
 bright = configSol4[img_name]['bright']
 contrast = configSol4[img_name]['contrast']
 k = configSol3[img_name]['k']
+dila = configSol1[img_name]['dila']
+open = configSol1[img_name]['open']
 
 img = cv.imread(img_path)
 clone = img.copy()
@@ -34,15 +38,9 @@ if input("Do you want to select ROI? [0: NO, 1: YES] ") == "1":
 if solution_number == "1":
     img_threshold = remove_background(img)
     # Fill the line
-    if "_1" in img_path:
-        dila = dilation(img_threshold, "1")
-    else:
-        dila = dilation(img_threshold, "0")
+    dila = dilation(img_threshold, dila)
     # Filter the noise
-    if "1_" in img_path:
-        opening = morphological(dila, "1")
-    else:
-        opening = morphological(dila, "0")
+    opening = morphological(dila, open)
     lines = hough_lines(opening, np.pi / 180)
     img_final = draw_lines(img, lines)
     show_img(img_final, "Morphological Result")
